@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Chapter</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="upload-container">
+        <h2>Upload a New Chapter</h2>
+        <form method="POST" action="/upload" enctype="multipart/form-data">
+            <label for="title">Chapter Title:</label>
+            <input type="text" name="title" required>
+
+            <label for="file">Upload File:</label>
+            <input type="file" name="file" required>
+
+            <button type="submit">Upload</button>
+        </form>
+        <a href="/admin_dashboard"><button>Back to Dashboard</button></a>
+    </div>
+</body>
+</html>

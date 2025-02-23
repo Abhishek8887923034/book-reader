@@ -1,0 +1,8 @@
+<h1>Welcome to Book Reader</h1>
+<ul>
+    {% for book in books %}
+        <li><b>{{ book.title }}</b> by {{ book.author }}</li>
+    {% else %}
+        <p>No books available.</p>
+    {% endfor %}
+</ul>

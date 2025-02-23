@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="book-container">
+    <div class="book-header">
+        <a href="{{ url_for('home') }}" class="back-btn">← वापस जाएं</a>
+        <h1>{{ book.title }}</h1>
+        <p class="author">लेखक: {{ book.author }}</p>
+    </div>
+
+    <div class="book-navigation">
+        <div class="chapter-list">
+            <h3>अध्याय सूची</h3>
+            <ul>
+                {% for chapter in book.chapters %}
+                <li class="{% if chapter.id == current_chapter.id %}active{% endif %}">
+                    <a href="#chapter-{{ chapter.id }}" class="chapter-link" data-chapter="{{ chapter.id }}">
+                        {{ chapter.title }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="reading-area">
+            {% if book.chapters %}
+                <div class="chapter-content" id="chapter-content">
+                    {% for chapter in book.chapters %}
+                    <div class="chapter" id="chapter-{{ chapter.id }}" {% if not loop.first %}style="display: none;"{% endif %}>
+                        <h2>{{ chapter.title }}</h2>
+                        <div class="content">
+                            {{ chapter.content|safe }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="page-controls">
+                    <button id="prev-chapter" class="page-btn" {% if not prev_chapter %}disabled{% endif %}>
+                        <span>←</span> पिछला अध्याय
+                    </button>
+                    <button id="next-chapter" class="page-btn" {% if not next_chapter %}disabled{% endif %}>
+                        अगला अध्याय <span>→</span>
+                    </button>
+                </div>
+            {% else %}
+                <div class="no-chapters">
+                    <p>इस पुस्तक में अभी कोई अध्याय नहीं है।</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.book-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.book-header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.book-navigation {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    gap: 30px;
+}
+
+.chapter-list {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.chapter-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.chapter-list li {
+    margin: 10px 0;
+}
+
+.chapter-list li.active a {
+    color: #007bff;
+    font-weight: bold;
+}
+
+.chapter-link {
+    color: #333;
+    text-decoration: none;
+    display: block;
+    padding: 8px;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.chapter-link:hover {
+    background: #f8f9fa;
+}
+
+.reading-area {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.chapter {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.chapter h2 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.content {
+    font-size: 18px;
+    line-height: 1.8;
+    color: #333;
+}
+
+.page-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+}
+
+.page-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.page-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.page-btn:not(:disabled):hover {
+    background: #0056b3;
+}
+
+.no-chapters {
+    text-align: center;
+    color: #666;
+    padding: 40px;
+}
+
+/* Add fade animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s forwards;
+}
+
+.fade-out {
+    animation: fadeOut 0.5s forwards;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const chapters = document.querySelectorAll('.chapter');
+    const prevBtn = document.getElementById('prev-chapter');
+    const nextBtn = document.getElementById('next-chapter');
+    const chapterLinks = document.querySelectorAll('.chapter-link');
+    let currentChapterIndex = 0;
+
+    function showChapter(index) {
+        chapters.forEach(ch => ch.style.display = 'none');
+        chapters[index].style.display = 'block';
+        
+        // Update active state in chapter list
+        chapterLinks.forEach(link => link.parentElement.classList.remove('active'));
+        chapterLinks[index].parentElement.classList.add('active');
+        
+        // Update buttons
+        prevBtn.disabled = index === 0;
+        nextBtn.disabled = index === chapters.length - 1;
+        
+        // Scroll to top
+        chapters[index].scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Add page turning animation
+    function turnPage(from, to) {
+        chapters[from].classList.add('fade-out');
+        setTimeout(() => {
+            chapters[from].style.display = 'none';
+            chapters[to].style.display = 'block';
+            chapters[to].classList.add('fade-in');
+            setTimeout(() => {
+                chapters[to].classList.remove('fade-in');
+            }, 500);
+        }, 500);
+    }
+
+    prevBtn.addEventListener('click', () => {
+        if (currentChapterIndex > 0) {
+            turnPage(currentChapterIndex, currentChapterIndex - 1);
+            currentChapterIndex--;
+            showChapter(currentChapterIndex);
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentChapterIndex < chapters.length - 1) {
+            turnPage(currentChapterIndex, currentChapterIndex + 1);
+            currentChapterIndex++;
+            showChapter(currentChapterIndex);
+        }
+    });
+
+    // Chapter list navigation
+    chapterLinks.forEach((link, index) => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            turnPage(currentChapterIndex, index);
+            currentChapterIndex = index;
+            showChapter(currentChapterIndex);
+        });
+    });
+
+    // Initialize first chapter
+    showChapter(0);
+});
+</script>
+{% endblock %} 

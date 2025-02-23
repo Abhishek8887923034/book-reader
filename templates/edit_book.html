@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Book - {{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <div class="dashboard-header">
+        <h1>Edit Book</h1>
+    </div>
+
+    <div class="book-editor">
+        <form method="POST" class="book-form">
+            <div class="form-group">
+                <label for="title">Book Title</label>
+                <input type="text" id="title" name="title" required class="form-control" value="{{ book.title }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="author">Author Name</label>
+                <input type="text" id="author" name="author" required class="form-control" value="{{ book.author }}">
+            </div>
+            
+            <div class="form-group">
+                <label>Book Content</label>
+                <div id="toolbar">
+                    <button class="ql-bold">Bold</button>
+                    <button class="ql-italic">Italic</button>
+                    <button class="ql-underline">Underline</button>
+                    <select class="ql-header">
+                        <option value="1">Heading 1</option>
+                        <option value="2">Heading 2</option>
+                        <option value="3">Heading 3</option>
+                        <option selected>Normal</option>
+                    </select>
+                </div>
+                <div id="editor"></div>
+                <textarea id="content" name="content" style="display: none;">{{ book.content }}</textarea>
+            </div>
+
+            <div id="chapters-container">
+                <h3>Chapters</h3>
+                {% for chapter in book.chapters %}
+                <div class="chapter-form">
+                    <div class="form-group">
+                        <label>Chapter Title</label>
+                        <input type="text" name="chapter_title[]" class="form-control" value="{{ chapter.title }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Chapter Content</label>
+                        <div class="chapter-editor" id="chapter-editor-{{ loop.index }}"></div>
+                        <textarea name="chapter_content[]" class="chapter-content" style="display: none;">{{ chapter.content }}</textarea>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <button type="button" id="add-chapter" class="btn btn-secondary">Add New Chapter</button>
+            
+            <div class="button-group">
+                <button type="submit" class="admin-btn">Update Book</button>
+                <a href="{{ url_for('manage_books') }}" class="cancel-btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Add Quill.js CSS and JS -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script>
+    // Initialize main content editor
+    var quill = new Quill('#editor', {
+        theme: 'snow',
+        modules: {
+            toolbar: '#toolbar'
+        }
+    });
+    quill.root.innerHTML = document.querySelector('#content').value;
+
+    // Initialize chapter editors
+    var chapterEditors = [];
+    document.querySelectorAll('.chapter-editor').forEach((editor, index) => {
+        var quillEditor = new Quill(editor, {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline'],
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['list', 'bullet']
+                ]
+            }
+        });
+        quillEditor.root.innerHTML = document.querySelectorAll('.chapter-content')[index].value;
+        chapterEditors.push(quillEditor);
+    });
+
+    // Add new chapter functionality
+    document.getElementById('add-chapter').addEventListener('click', function() {
+        var container = document.getElementById('chapters-container');
+        var chapterDiv = document.createElement('div');
+        chapterDiv.className = 'chapter-form';
+        chapterDiv.innerHTML = `
+            <div class="form-group">
+                <label>Chapter Title</label>
+                <input type="text" name="chapter_title[]" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Chapter Content</label>
+                <div class="chapter-editor"></div>
+                <textarea name="chapter_content[]" class="chapter-content" style="display: none;"></textarea>
+            </div>
+        `;
+        container.appendChild(chapterDiv);
+
+        // Initialize new editor
+        var newEditor = new Quill(chapterDiv.querySelector('.chapter-editor'), {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline'],
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['list', 'bullet']
+                ]
+            }
+        });
+        chapterEditors.push(newEditor);
+    });
+
+    // Form submission
+    document.querySelector('form').onsubmit = function() {
+        // Save main content
+        document.querySelector('#content').value = quill.root.innerHTML;
+        
+        // Save chapter contents
+        chapterEditors.forEach((editor, index) => {
+            document.querySelectorAll('.chapter-content')[index].value = editor.root.innerHTML;
+        });
+    };
+</script>
+
+<style>
+.chapter-form {
+    background: #f8f9fa;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 5px;
+}
+
+.button-group {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+#add-chapter {
+    margin: 20px 0;
+}
+</style>
+{% endblock %} 

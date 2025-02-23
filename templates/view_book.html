@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="book-header">
+        <h1>{{ book.title }}</h1>
+        <p class="author">लेखक: {{ book.author }}</p>
+        {% if 'admin_id' in session %}
+            <a href="{{ url_for('add_chapter', book_id=book.id) }}" class="admin-btn">Add New Chapter</a>
+        {% endif %}
+    </div>
+
+    <div class="chapters-list">
+        {% for chapter in book.chapters %}
+            <div class="chapter-card">
+                <h3>{{ chapter.title }}</h3>
+                <p class="chapter-date">Added on: {{ chapter.created_date.strftime('%d %B, %Y') }}</p>
+                <div class="chapter-content">
+                    {{ chapter.content|safe }}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.book-header {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.chapter-card {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.chapter-date {
+    color: #666;
+    font-size: 0.9em;
+    margin-bottom: 15px;
+}
+
+.chapter-content {
+    line-height: 1.6;
+}
+</style>
+{% endblock %} 

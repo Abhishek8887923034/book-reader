@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Book Reader - Home{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="books-list">
+        {% for book in books %}
+        <div class="book-card">
+            <h2>{{ book.title }}</h2>
+            <p class="author">By: {{ book.author }}</p>
+            {% if 'user_id' in session %}
+                {% set user = User.query.get(session['user_id']) %}
+                {% if user and user.has_active_subscription() %}
+                    <a href="{{ url_for('read_book', id=book.id) }}" class="read-btn">Read Book</a>
+                {% else %}
+                    <a href="{{ url_for('subscribe') }}" class="subscribe-btn">Subscribe to Read</a>
+                    <p class="subscription-note">Subscribe from ₹99/month to read all books</p>
+                {% endif %}
+            {% else %}
+                <a href="{{ url_for('login') }}" class="login-btn">Login to Read</a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.subscription-note {
+    color: #666;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.subscribe-btn {
+    background: #28a745;
+    color: white;
+    text-decoration: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.subscribe-btn:hover {
+    background: #218838;
+    color: white;
+}
+</style>
+{% endblock %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ book.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('home') }}" class="back-btn">← Back</a>
+        <h1>{{ book.title }}</h1>
+        <h3>By: {{ book.author }}</h3>
+        <div class="book-content">
+            {{ book.content }}
+        </div>
+    </div>
+</body>
+</html>
+
+<div class="books-list">
+    {% for book in books %}
+    <div class="book-card">
+        <h2>{{ book.title }}</h2>
+        <p>By: {{ book.author }}</p>
+        <a href="{{ url_for('read_book', id=book.id) }}" class="read-btn">Read Book</a>
+    </div>
+    {% endfor %}
+</div>
+
